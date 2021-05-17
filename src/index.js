@@ -6,7 +6,7 @@ import morgan from "morgan"
 import {graphqlHTTP} from "express-graphql";
 
 //GraphQL Schema
-import {schema} from "./schema.js"
+import {schema} from "./schema/schema.js"
 import {connection} from "./utils/connection.js"
 
 
