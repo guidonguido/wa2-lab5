@@ -1,13 +1,15 @@
-import mongoose from "mongoose"
+import mongoose from 'mongoose'
+import dotenv from 'dotenv'
 
+dotenv.config()
 
-async function connect () {
+const connection = async function connect () {
     try {
         await mongoose.connect(
-            'mongodb://localhost:27017',
+            process.env.MONGODB_URI,
             {
-                user: "root",
-                pass: "password",
+                user: process.env.MONGODB_USER,
+                pass: process.env.MONGODB_PASSWORD,
                 useNewUrlParser: true,
                 useUnifiedTopology: true });
 
@@ -25,4 +27,4 @@ async function connect () {
     }
 }
 
-export {connect}
+export {connection}
