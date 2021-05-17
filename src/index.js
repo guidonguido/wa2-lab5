@@ -7,9 +7,8 @@ import {graphqlHTTP} from "express-graphql";
 
 //GraphQL Schema
 import {schema} from "./schema.js"
-import {connect} from "./connection.js"
+import {connection} from "./utils/connection.js"
 
-const connection = connect()
 
 const app = express()
 app.use(morgan('dev'))
