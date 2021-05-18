@@ -1,13 +1,22 @@
 import mongoose from "mongoose";
 
-const CommentSchema = new mongoose.Schema({
-    title: String,
+const commentSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true
+    },
     body: String,
-    stars: Number,
-    date: Date
+    stars: {
+        type: Number,
+        required: true
+    },
+    date: {
+        type: Date,
+        required: true
+    }
 });
 
 
 
 //The compiled schema is made available to other modules
-export default mongoose.model('comment', commentSchema);
+export default mongoose.model('Comment', commentSchema);

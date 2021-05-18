@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import Comment from './Comment.js'
 
-//TODO Is it correct?
+//TODO Unused, remove itgra
 const ProductCategory = {
     STYLE: "STYLE",
     FOOD: "FOOD",
@@ -10,7 +10,7 @@ const ProductCategory = {
 }
 
 //Here a schema for a person document is created
-const ProductSchema = new mongoose.Schema({
+const productSchema = new mongoose.Schema({
     name: String,
     createdAt: Date,
     description: String,
@@ -30,4 +30,4 @@ const ProductSchema = new mongoose.Schema({
 
 
 //The compiled schema is made available to other modules
-export default mongoose.model('product', productSchema);
+export default mongoose.model('Product', productSchema)
