@@ -1,4 +1,6 @@
-import {makeExecutableSchema} from "graphql-tools";
+import {makeExecutableSchema} from 'graphql-tools'
+import Product from '../model/Product.js'
+import Comment from '../model/Comment.js'
 
 const typeDefs = `
     scalar DateTime,
@@ -80,15 +82,29 @@ const typeDefs = `
 
 const resolvers = {
     Query: {
-        product: (parent, args, context, info) => {
-            return {_id: args.id,
-                name: "hello",
-                createdAt: new Date(),
-                description: "Test Product",
-                price: 1000,
-                stars: 3,
-                category: "STYLE"}
-        },
+        product: async (parent, args, context, info) => {
+            try{
+                const productFetched = await Product.find()
+
+                //TODO For each product, fetch its Comments
+                return productFetched.map( product => {
+                    return {
+                        ...product._doc,
+                        _id: product.id
+                    }
+                })
+                /* return {_id: args.id,
+                    name: "hello",
+                    createdAt: new Date(),
+                    description: "Test Product",
+                    price: 1000,
+                    stars: 3,
+                    category: "STYLE"}
+
+                 */
+        } catch( error) {
+            throw error
+        }},
 
         products: (parent, args, context, info) => {
             if( args.sort.value == "price" &&  args.sort.order == "desc")
@@ -123,20 +139,30 @@ const resolvers = {
     },
 
     Mutation: {
-        productCreate: (parent, args, context, info) => {
+        productCreate: async (parent, args, context, info) => {
             console.log(`Product mutation requested ${
                 args.productCreateInput.name,
-                    args.productCreateInput.description,
-                    args.productCreateInput.price,
-                    args.productCreateInput.category}`)
+                args.productCreateInput.description,
+                args.productCreateInput.price,
+                args.productCreateInput.category}`)
 
-            return {_id: 1,
-                name: args.productCreateInput.name,
-                description: args.productCreateInput.description,
-                price: args.productCreateInput.price,
-                category: args.productCreateInput.category,
-                createdAt: new Date(),
-                stars: 3}
+            try {
+                const { name, description, price, category } = args.productCreateInput
+                const product = new Product(
+                    name,
+                    new Date(),
+                    description,
+                    price,
+                    [], // Comments _id list
+                    category,
+                    0 // New products starts from 0 stars
+                )
+
+                const newProduct = await product.save()
+                return{ ...newProduct._doc, _id: newProduct.id }
+            }catch (error) {
+                throw error
+            }
         }
     }
 }
@@ -144,4 +170,4 @@ const resolvers = {
 const schema = makeExecutableSchema({
     typeDefs, resolvers})
 
-export {schema}
+export default schema
