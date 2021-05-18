@@ -8,6 +8,7 @@ const connection = async function connect () {
         await mongoose.connect(
             process.env.MONGODB_URI,
             {
+                dbName:process.env.MONGODB_DB_NAME,
                 user: process.env.MONGODB_USER,
                 pass: process.env.MONGODB_PASSWORD,
                 useNewUrlParser: true,
@@ -16,7 +17,7 @@ const connection = async function connect () {
         mongoose.connection.on('error', err => {
             console.log("disconnection error")
             //handle here disconnections that may happen later
-        });
+        })
 
         console.log("App connected to DB")
     } catch (error) {
