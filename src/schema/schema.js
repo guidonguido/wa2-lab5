@@ -1,4 +1,6 @@
 import {makeExecutableSchema} from "graphql-tools";
+import Product from '../model/Product.js'
+import resolvers from "../resolvers/resolvers.js";
 
 const typeDefs = `
     scalar DateTime,
@@ -77,69 +79,6 @@ const typeDefs = `
         ) : Comment
     }
 `
-
-const resolvers = {
-    Query: {
-        product: (parent, args, context, info) => {
-            return {_id: args.id,
-                name: "hello",
-                createdAt: new Date(),
-                description: "Test Product",
-                price: 1000,
-                stars: 3,
-                category: "STYLE"}
-        },
-
-        products: (parent, args, context, info) => {
-            if( args.sort.value == "price" &&  args.sort.order == "desc")
-                return [{
-                    _id: args.id,
-                    name: "SORTED FILTER",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"
-                }]
-
-            else
-                return [{
-                    _id: args.id,
-                    name: "NO SORT NO FILTER",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"
-                }]
-        }
-    },
-
-    Product: {
-        comments: (product, args, context, info) => {
-            return [{id: 1, product, title: "Good", body:"GG", stars: 3, date: new Date()},
-                {id: 2, product, title: "Bad", body:"GG", stars: 4, date: new Date()}]
-        }
-    },
-
-    Mutation: {
-        productCreate: (parent, args, context, info) => {
-            console.log(`Product mutation requested ${
-                args.productCreateInput.name,
-                    args.productCreateInput.description,
-                    args.productCreateInput.price,
-                    args.productCreateInput.category}`)
-
-            return {_id: 1,
-                name: args.productCreateInput.name,
-                description: args.productCreateInput.description,
-                price: args.productCreateInput.price,
-                category: args.productCreateInput.category,
-                createdAt: new Date(),
-                stars: 3}
-        }
-    }
-}
 
 const schema = makeExecutableSchema({
     typeDefs, resolvers})

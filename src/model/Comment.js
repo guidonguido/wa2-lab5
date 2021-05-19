@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
 
-const CommentSchema = new mongoose.Schema({
+const commentSchema = new mongoose.Schema({
     title: String,
     body: String,
     stars: Number,
-    date: Date
+    date: Date,
+    product_id: String
 });
 
 

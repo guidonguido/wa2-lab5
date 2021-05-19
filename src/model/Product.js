@@ -10,7 +10,7 @@ const ProductCategory = {
 }
 
 //Here a schema for a person document is created
-const ProductSchema = new mongoose.Schema({
+const productSchema = new mongoose.Schema({
     name: String,
     createdAt: Date,
     description: String,
