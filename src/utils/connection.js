@@ -19,11 +19,11 @@ const connection = async function connect () {
             //handle here disconnections that may happen later
         })
 
-        console.log("App connected to DB")
+        console.log("App connected to DB...")
     } catch (error) {
-        //problems in establishing the connection
-        console.log("problems in establishing the connection")
-
+        // Problems in establishing the connection
+        console.log(`Problems occurred while  establishing the connection, Error: ${error}`)
+        throw error
         // handleError(error)
     }
 }

@@ -18,6 +18,10 @@ app.use("/graphql", graphqlHTTP(
         graphiql: true})
 )
 
-connection().then(() => {
+connection()
+    .then(() => {
         app.listen(3000, () => { console.log("Server running on port 3000")})
-})
+        })
+    .catch(() => {
+            console.log("Server stopped due to a DB connection error")
+    })
