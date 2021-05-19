@@ -84,24 +84,10 @@ const resolvers = {
     Query: {
         product: async (parent, args, context, info) => {
             try{
-                const productFetched = await Product.find()
+                const productFetched = await Product.findById(args.id).exec()
 
                 //TODO For each product, fetch its Comments
-                return productFetched.map( product => {
-                    return {
-                        ...product._doc,
-                        _id: product.id
-                    }
-                })
-                /* return {_id: args.id,
-                    name: "hello",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"}
-
-                 */
+                return productFetched
         } catch( error) {
             throw error
         }},
@@ -140,30 +126,54 @@ const resolvers = {
 
     Mutation: {
         productCreate: async (parent, args, context, info) => {
-            console.log(`Product mutation requested ${
-                args.productCreateInput.name,
-                args.productCreateInput.description,
-                args.productCreateInput.price,
-                args.productCreateInput.category}`)
-
             try {
                 const { name, description, price, category } = args.productCreateInput
-                const product = new Product(
-                    name,
-                    new Date(),
-                    description,
-                    price,
-                    [], // Comments _id list
-                    category,
-                    0 // New products starts from 0 stars
-                )
+                const product = new Product({
+                    name: name,
+                    createdAt: new Date(),
+                    description: description,
+                    price: price,
+                    // comments: null, // Comments _id list
+                    category: category,
+                    stars: 0 // New products starts from 0 stars
+                })
 
-                const newProduct = await product.save()
-                return{ ...newProduct._doc, _id: newProduct.id }
+                const newProduct = await Product.create(product)
+                console.log("Created product: " +newProduct)
+                return newProduct
             }catch (error) {
+                console.log("Error on mutation")
+                throw error
+            }
+        },
+
+        commentCreate: async (parent, args, context, info) => {
+            try {
+                const { title, body, stars} = args.commentCreateInput
+                const productID = args.productId
+                const comment = new Comment({
+                    title: title,
+                    body: body,
+                    stars: stars,
+                    date: new Date()
+                })
+
+                const newComment = await Comment.create(comment)
+                console.log("Created comment: " +newComment)
+
+                // Update the referenced comments on Product
+                await Product.findByIdAndUpdate(
+                    productID,
+                    {$push: {comments: newComment._id}},
+                    { new: true, useFindAndModify: false })
+
+                return newComment
+            }catch (error) {
+                console.log("Error on mutation")
                 throw error
             }
         }
+
     }
 }
 

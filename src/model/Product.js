@@ -9,15 +9,39 @@ const ProductCategory = {
     SPORT: "SPORT",
 }
 
-//Here a schema for a person document is created
+/**
+ * @type {module:mongoose.Schema<Document, Model<any, any, any>, undefined>}
+ *
+ * Normalizing the comments data:
+ * Since comment data is updated a lot then we consider referencing (normalizing) it.
+ * That’s because the database engine does more work to update and embed a document than a standalone document.
+ *
+ * Each time someone posts a Comment, we need to update the corresponding Product document.
+ * The data can change all the time, so this is a great candidate for referencing.
+ */
 const productSchema = new mongoose.Schema({
-    name: String,
-    createdAt: Date,
+    name: {
+        type: String,
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        required: true
+    },
     description: String,
-    price: Number,
-    //TODO Is it correct? How do we link Comment?
-    comments: [Number],
-    category: String,
+    price: {
+        type: Number,
+        required: true
+    },
+    comments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment"
+    }],
+    category: {
+        type: String,
+        required: true
+    },
+    // TODO change this upon comments stars
     stars: Number
 });
 
