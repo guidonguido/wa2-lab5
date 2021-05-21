@@ -40,10 +40,25 @@ const productSchema = new mongoose.Schema({
     category: {
         type: String,
         required: true
-    },
-    // TODO change this upon comments stars
-    stars: Number
-});
+    }
+})
+
+/**
+ * Personalized Instance method
+ *
+ * Retrieve the stars of a product based on the stars of its related comments
+ */
+productSchema.methods.stars = async function() {
+    //  const commentIds = comments.map( (it) => {return mongoose.Types.ObjectId(it)})
+    console.log("comments: " +this.comments)
+    const fetchedAvgStars =  await Comment.aggregate([
+        {$match: {"_id": {"$in": this.comments}}},
+        {$group: {"_id": null, avgStars: {"$avg": "$stars"}}}
+    ]).project("avgStars").exec()
+
+    return Math.round(fetchedAvgStars[0].avgStars)
+}
+
 
 //It is possible to declare methods for documetns
 /*personSchema.methods.age = function() {

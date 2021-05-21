@@ -84,10 +84,9 @@ const resolvers = {
     Query: {
         product: async (parent, args, context, info) => {
             try{
-                const productFetched = await Product.findById(args.id).exec()
+                const fetchedProduct = await Product.findById(args.id).exec()
 
-                //TODO For each product, fetch its Comments
-                return productFetched
+                return fetchedProduct
         } catch( error) {
             throw error
         }},
@@ -118,9 +117,11 @@ const resolvers = {
     },
 
     Product: {
-        comments: (product, args, context, info) => {
-            return [{id: 1, product, title: "Good", body:"GG", stars: 3, date: new Date()},
-                {id: 2, product, title: "Bad", body:"GG", stars: 4, date: new Date()}]
+        comments: async (product, args, context, info) => {
+            const fetchedComments = await Comment.find({
+                '_id': { $in: product.comments
+                } }).exec()
+            return fetchedComments
         }
     },
 
