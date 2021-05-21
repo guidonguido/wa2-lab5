@@ -1,4 +1,9 @@
-import {makeExecutableSchema} from "graphql-tools";
+//import {makeExecutableSchema} from 'graphql-tools'
+import pkg from 'graphql-tools';
+const {makeExecutableSchema} = pkg;
+import Product from '../model/Product.js'
+
+
 
 const typeDefs = `
     scalar DateTime,
@@ -91,9 +96,9 @@ const resolvers = {
         },
 
         products: (parent, args, context, info) => {
-            if( args.sort.value == "price" &&  args.sort.order == "desc")
+            if( args.sort.value === "price" &&  args.sort.order === "desc")
                 return [{
-                    _id: args.id,
+                    _id: 1,
                     name: "SORTED FILTER",
                     createdAt: new Date(),
                     description: "Test Product",
@@ -104,7 +109,7 @@ const resolvers = {
 
             else
                 return [{
-                    _id: args.id,
+                    _id: 1,
                     name: "NO SORT NO FILTER",
                     createdAt: new Date(),
                     description: "Test Product",
@@ -123,20 +128,23 @@ const resolvers = {
     },
 
     Mutation: {
-        productCreate: (parent, args, context, info) => {
-            console.log(`Product mutation requested ${
-                args.productCreateInput.name,
-                    args.productCreateInput.description,
-                    args.productCreateInput.price,
-                    args.productCreateInput.category}`)
-
-            return {_id: 1,
+        productCreate: async (parent, args, context, info) => {
+            const newProduct = new Product({
                 name: args.productCreateInput.name,
                 description: args.productCreateInput.description,
                 price: args.productCreateInput.price,
                 category: args.productCreateInput.category,
                 createdAt: new Date(),
-                stars: 3}
+                stars: 0
+            });
+            try {
+                await newProduct.save();
+                return newProduct
+            } catch (e) {
+                console.log("Error in productCreate")
+                throw e
+            }
+
         }
     }
 }

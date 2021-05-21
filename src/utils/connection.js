@@ -21,7 +21,7 @@ const connection = async function connect () {
         console.log("App connected to DB")
     } catch (error) {
         //problems in establishing the connection
-        console.log("roblems in establishing the connection")
+        console.log("Problems in establishing the connection")
 
         // handleError(error)
     }

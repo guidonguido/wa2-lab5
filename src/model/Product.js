@@ -1,13 +1,4 @@
 import mongoose from 'mongoose'
-import Comment from './Comment.js'
-
-//TODO Is it correct?
-const ProductCategory = {
-    STYLE: "STYLE",
-    FOOD: "FOOD",
-    TECH: "TECH",
-    SPORT: "SPORT",
-}
 
 //Here a schema for a person document is created
 const ProductSchema = new mongoose.Schema({
@@ -15,8 +6,7 @@ const ProductSchema = new mongoose.Schema({
     createdAt: Date,
     description: String,
     price: Number,
-    //TODO Is it correct? How do we link Comment?
-    comments: [Number],
+    comments: [String],
     category: String,
     stars: Number
 });
@@ -30,4 +20,4 @@ const ProductSchema = new mongoose.Schema({
 
 
 //The compiled schema is made available to other modules
-export default mongoose.model('product', productSchema);
+export default mongoose.model('product', ProductSchema);

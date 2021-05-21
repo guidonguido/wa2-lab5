@@ -10,4 +10,4 @@ const CommentSchema = new mongoose.Schema({
 
 
 //The compiled schema is made available to other modules
-export default mongoose.model('comment', commentSchema);
+export default mongoose.model('comment', CommentSchema);
