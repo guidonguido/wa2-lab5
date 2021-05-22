@@ -11,7 +11,8 @@ const connection = async function connect () {
                 user: process.env.MONGODB_USER,
                 pass: process.env.MONGODB_PASSWORD,
                 useNewUrlParser: true,
-                useUnifiedTopology: true });
+                useUnifiedTopology: true
+            });
 
         mongoose.connection.on('error', err => {
             console.log("disconnection error")
@@ -21,7 +22,7 @@ const connection = async function connect () {
         console.log("App connected to DB")
     } catch (error) {
         //problems in establishing the connection
-        console.log("roblems in establishing the connection")
+        console.log("Problems in establishing the connection")
 
         // handleError(error)
     }
