@@ -1,3 +1,5 @@
+#Personal DB config
+.env
 # Default ignored files
 /shelf/
 /workspace.xml
@@ -13,5 +15,3 @@ build/
 
 .idea/
 .vscode/
-
-
