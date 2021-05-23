@@ -1,15 +1,23 @@
 import mongoose from "mongoose";
 
 const commentSchema = new mongoose.Schema({
-    title: String,
+    title: {
+        type: String,
+        required: true
+    },
     body: String,
-    stars: Number,
-    date: Date
+    stars: {
+        type: Number,
+        required: true,
+        min: 1, //TODO do we assume it?
+        max: 5
+    },
+    date: {
+        type: Date,
+        required: true
+    }
 });
 
-//The compiled schema is made available to other modules
-const commentModel = mongoose.model('comment', commentSchema);
 
-//TODO do i need to export comment?
-//Export che schema in order to be used it the Product schema
-export {commentSchema, commentModel};
+//The compiled schema is made available to other modules
+export default mongoose.model('Comment', commentSchema);
