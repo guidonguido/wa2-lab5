@@ -53,20 +53,14 @@ productSchema.methods.stars = async function() {
     console.log("comments: " +this.comments)
     const fetchedAvgStars =  await Comment.aggregate([
         {$match: {"_id": {"$in": this.comments}}},
-        {$group: {"_id": null, avgStars: {"$avg": "$stars"}}}
-    ]).project("avgStars").exec()
+        {$group: {"_id": null, avgStars: {$avg: "$stars"}}},
+        {$project: {avgStars: 1, _id:0}}
+    ]).exec()
+
+    console.log(fetchedAvgStars)
 
     return Math.round(fetchedAvgStars[0].avgStars)
 }
-
-
-//It is possible to declare methods for documetns
-/*personSchema.methods.age = function() {
-    return Math.floor(
-        (Date.now()-this.dataOfBirth)/
-        (365*24*60*60*1000));
-}*/
-
 
 //The compiled schema is made available to other modules
 export default mongoose.model('Product', productSchema)
