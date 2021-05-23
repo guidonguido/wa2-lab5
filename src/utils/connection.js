@@ -15,13 +15,13 @@ const connection = async function connect () {
             });
 
         mongoose.connection.on('error', err => {
-            console.log("disconnection error")
-            //handle here disconnections that may happen later
+            console.log("Disconnection error")
+            //Handle here disconnections that may happen later
         });
 
         console.log("App connected to DB")
     } catch (error) {
-        //problems in establishing the connection
+        //Problems in establishing the connection
         console.log("Problems in establishing the connection")
 
         // handleError(error)
