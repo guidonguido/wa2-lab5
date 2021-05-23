@@ -52,8 +52,9 @@ productSchema.methods.stars = async function() {
     console.log("Comments: " + this.comments)
     const fetchedAvgStars =  await Comment.aggregate([
         {$match: {_id: {$in: this.comments}}},
-        {$group: {_id: null, avgStars: {$avg: "$stars"}}}
-    ]).project("avgStars").exec()
+        {$group: {_id: null, avgStars: {$avg: "$stars"}}},
+        {$project: {_id: 0, avgStars: 1}}
+    ]).exec()
 
     return Math.round(fetchedAvgStars[0].avgStars)
 }
