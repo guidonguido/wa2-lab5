@@ -87,34 +87,62 @@ const resolvers = {
                 const fetchedProduct = await Product.findById(args.id).exec()
 
                 return fetchedProduct
-        } catch( error) {
+        } catch( error ) {
             throw error
         }},
 
-        products: (parent, args, context, info) => {
-            if( args.sort.value == "price" &&  args.sort.order == "desc")
-                return [{
-                    _id: args.id,
-                    name: "SORTED FILTER",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"
-                }]
+        products: async (parent, args, context, info) => {
 
-            else
-                return [{
-                    _id: args.id,
-                    name: "NO SORT NO FILTER",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"
-                }]
-        }
-    },
+            try{
+
+                // Initialize pipeline with firs filters
+                let productsPipeline = Product.aggregate([
+                    { $match: {
+                        $and: [
+                            //{stars: {$gt: args.filter.minStars || 0}},
+                            {price: {$gt: args.filter.minPrice || 0}},
+                            {price: {$lt: args.filter.maxPrice || Float.MAX_SAFE_INTEGER}}
+                        ]}}
+                ])
+
+                // PARAMETRIC FILTERS
+                // - If filtering categories are specified
+                args.filter.categories && productsPipeline.match({ category: {$in: args.filter.categories}})
+
+                // - If sorting value is specified
+                args.sort.value && productsPipeline.sort(
+                    `${args.sort.value.toString()} ${args.sort.order.toString() || 1}`)
+
+                // console.log("Applied pipeline: ")
+                // console.log(productsPipeline.pipeline())
+
+                const fetchedProducts = await productsPipeline.exec()
+
+                // Populate stars field and filter by minStars
+                const productsWithStars = fetchedProducts.flatMap( async (product) =>{
+                    const productModel = new Product( {... product})
+                    const stars = await productModel.stars()
+                    if( args.filter.minStars && stars > args.filter.minStars ) {
+                        productModel.stars = stars
+                        console.log("Si min stars")
+                        return productModel
+                    }
+                    if( !args.filter.minStars )
+                    {   console.log("No min stars")
+                        return productModel
+                    }
+                })
+
+                return Promise.all(productsWithStars).then((values) => {
+                    return values.filter( it => it != null)})
+
+
+            } catch( error ) {
+                throw error
+            }
+
+
+    }},
 
     Product: {
         comments: async (product, args, context, info) => {
