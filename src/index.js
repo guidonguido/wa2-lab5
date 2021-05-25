@@ -23,5 +23,6 @@ connection()
         app.listen(3000, () => { console.log("Server running on port 3000")})
         })
     .catch(() => {
-            console.log("Server stopped due to a DB connection error")
+        console.log("Server stopped due to a DB connection error")
+        process.exit(1);
     })

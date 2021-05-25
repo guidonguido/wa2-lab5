@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-const connection = async function connect () {
+const connection = async function () {
     try {
         await mongoose.connect(
             process.env.MONGODB_URI,
@@ -14,9 +14,19 @@ const connection = async function connect () {
                 useNewUrlParser: true,
                 useUnifiedTopology: true });
 
+        // If the connection throws an error
         mongoose.connection.on('error', err => {
-            console.log("disconnection error")
-            //handle here disconnections that may happen later
+            console.log('Mongoose default connection error: ' + err);
+        })
+
+        // When the connection to DB is lost
+        mongoose.connection.on('disconnected', () => {
+            console.log('Mongoose default connection disconnected, retrying connection');
+            connection()
+                .catch(() => {
+                    console.log("Server stopped due to a DB connection error")
+                    process.exit(1);
+                })
         })
 
         console.log("App connected to DB...")
