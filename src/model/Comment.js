@@ -4,8 +4,8 @@ const commentSchema = new mongoose.Schema({
     title: String,
     body: String,
     stars: Number,
-    date: Date,
-    product_id: String
+    date: Date
+    //productId: String
 });
 
 

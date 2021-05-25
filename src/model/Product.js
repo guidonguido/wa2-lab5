@@ -15,8 +15,7 @@ const productSchema = new mongoose.Schema({
     createdAt: Date,
     description: String,
     price: Number,
-    //TODO Is it correct? How do we link Comment?
-    comments: [Number],
+    comments: [String],
     category: String,
     stars: Number
 });

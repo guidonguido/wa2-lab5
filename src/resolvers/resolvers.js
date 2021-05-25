@@ -16,14 +16,6 @@ const resolvers = {
                     console.error(`ERROR by finding product ${args.id}: ${err}`)
                     return err
                 })
-
-            /*return {_id: args.id,
-                name: "hello",
-                createdAt: new Date(),
-                description: "Test Product",
-                price: 1000,
-                stars: 3,
-                category: "STYLE"}*/
         },
 
         products: (parent, args, context, info) => {
@@ -36,7 +28,11 @@ const resolvers = {
                     const shouldApplySorting = sort !== undefined
 
                     console.log(`FILTER: ${shouldApplyFilters}`)
-                    console.log(`SORTING: ${shouldApplySorting} - ${sort.value} , ${sort.order}`)
+
+                    shouldApplySorting != false ?
+                        console.log(`SORTING: ${shouldApplySorting} - ${sort.value} , ${sort.order}`)
+                        :
+                        console.log(`SORTING: ${shouldApplySorting}`)
 
 
                     if(shouldApplyFilters){
@@ -84,47 +80,19 @@ const resolvers = {
                     return products
                 }
             )
-
-
-            /*return Product.find(filterInput)
-                .then((result)=>{
-                    console.log(`Products found`)
-                    console.log(result)
-                    return result
-                })
-                .catch((err)=>{
-                    console.error(`ERROR by finding all products: ${err}`)
-                    return err
-                })*/
-
-            /*if( args.sort.value == "price" &&  args.sort.order == "desc")
-                return [{
-                    _id: args.id,
-                    name: "SORTED FILTER",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"
-                }]
-
-            else
-                return [{
-                    _id: args.id,
-                    name: "NO SORT NO FILTER",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"
-                }]*/
         }
     },
 
     Product: {
         comments: (product, args, context, info) => {
-            return [{id: 1, product, title: "Good", body:"GG", stars: 3, date: new Date()},
-                {id: 2, product, title: "Bad", body:"GG", stars: 4, date: new Date()}]
+            return Comment.find()
+                .then( (comments) => {
+                    return comments.filter( (c) => product.comments.includes(c._id))
+                })
+                .catch((err) => {
+                    console.error(`ERROR in comment find: ${err}`)
+                    throw err
+                })
         }
     },
 
@@ -140,57 +108,83 @@ const resolvers = {
                 price: args.productCreateInput.price,
                 category: args.productCreateInput.category,
                 description: args.productCreateInput.description,
-                createdAt: new Date()
-                /*comments: Comment.create(args.commentCreateInput
-                                            .map( it => {
-                                                return {title: it.title,
-                                                        body: it.body,
-                                                        stars: it.stars,
-                                                        date: new Date()}
-                                                        }
-                                                )
-                                        )*/
+                createdAt: new Date(),
+                stars: null //-1 ??
             })
             .then((result) =>{
                 console.log("Product created on DB")
                 console.log(result)
-                console.log(`PRODUCT's PARENT: ${parent}`)
                 return result
                 //Comment.create({title:args.commentCreateInput, body, stars, date})
             })
-            .catch(() => {
+            .catch( (err) => {
                 console.error("ERROR on productCreate")
-                return null
+                throw err
                 }
             )
             return returnValue
         },
 
-        commentCreate: (parent, args, context, info) => {
+        commentCreate: async (parent, args, context, info) => {
             console.log(`Commnent mutation requested`)
 
-            if(Product.findById(args.product_id)) {
+            const product2Update = await Product.findById(args.productId).then( (prod) => {return prod})
+
+            if(product2Update) {
+
                 const returnValue = Comment.create({
-                    product_id: args.product_id,
+                    //productId: args.productId,
                     title: args.commentCreateInput.title,
                     body: args.commentCreateInput.body,
                     stars: args.commentCreateInput.stars,
                     date: new Date()
                 })
-                    .then((result) => {
-                        console.log(`Comment for product ${args.product_id} created on DB`)
-                        console.log(result)
-                        console.log(`COMMENT's PARENT: ${parent}`)
-                        return result
+                    .then((commentResult) => {
+                        console.log(`Comment for product ${args.productId} created on DB`)
+                        console.log(commentResult)
+
+                        //Compute update of stars number on product
+                        let newStars = commentResult.stars
+
+                        if(product2Update.comments.length > 0) {
+                            /*const oldStarsMean = product2Update.comments.reduce( (acc, comment) => {acc + (comment.stars || 0)}, 0)
+                                / product2Update.comments.length*/
+                            const oldStarsMean = product2Update.stars
+
+                            console.log(`** STARS old mean: ${oldStarsMean}`)
+
+                            newStars = (oldStarsMean + newStars)/2
+
+                            console.log(`** STARS new mean: ${newStars}`)
+                        }
+
+                        return Product.findByIdAndUpdate(args.productId,
+                                           {$push: {comments: commentResult._id},
+                                                    $set: {stars: newStars}
+                                                    },
+                                           { new: true, useFindAndModify: false }
+                            )
+                            .then((productUpdated) => {
+                                console.log(`Comment inserted on product ${args.productId}`)
+                                console.log(productUpdated)
+
+                                return commentResult
+                            })
+                            .catch((err) => {
+                                    console.error(`ERROR on Update product: ${err}`)
+                                    throw err
+                                }
+                            )
                     })
                     .catch((err) => {
                             console.error(`ERROR on commentCreate: ${err}`)
-                            return null
+                            throw err
                         }
                     )
                 return returnValue
             }
-            else return null
+            else
+                return null
         }
     }
 }
