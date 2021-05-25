@@ -29,12 +29,12 @@ const connection = async function () {
                 })
         })
 
+        // Connection success
         console.log("App connected to DB...")
     } catch (error) {
-        // Problems in establishing the connection
+        // Problems while establishing the connection
         console.log(`Problems occurred while  establishing the connection, Error: ${error}`)
         throw error
-        // handleError(error)
     }
 }
 
