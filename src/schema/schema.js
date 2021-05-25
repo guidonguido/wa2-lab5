@@ -94,49 +94,58 @@ const resolvers = {
         products: async (parent, args, context, info) => {
 
             try{
+                const filter = {
+                    categories: (args.filter && args.filter.categories) || null,
+                    minStars: (args.filter && args.filter.minStars)|| null,
+                    minPrice: (args.filter && args.filter.minPrice)|| null,
+                    maxPrice: (args.filter && args.filter.maxPrice)|| null
+                }
+
+                const sort = {
+                    value: (args.sort && args.sort.value)|| null,
+                    order: (args.sort && args.sort.order)|| null
+                }
+
 
                 // Initialize pipeline with firs filters
                 let productsPipeline = Product.aggregate([
                     { $match: {
                         $and: [
                             //{stars: {$gt: args.filter.minStars || 0}},
-                            {price: {$gt: args.filter.minPrice || 0}},
-                            {price: {$lt: args.filter.maxPrice || Float.MAX_SAFE_INTEGER}}
+                            {price: {$gt: filter.minPrice || 0,
+                                     $lt: filter.maxPrice || Number.MAX_SAFE_INTEGER}},
                         ]}}
                 ])
 
                 // PARAMETRIC FILTERS
                 // - If filtering categories are specified
-                args.filter.categories && productsPipeline.match({ category: {$in: args.filter.categories}})
+                filter.categories && productsPipeline.match({ category: {$in: filter.categories}})
 
                 // - If sorting value is specified
-                args.sort.value && productsPipeline.sort(
-                    `${args.sort.value.toString()} ${args.sort.order.toString() || 1}`)
+                sort.value && productsPipeline.sort(
+                    `${sort.order.toString()=='asc'? "" : "-"}${sort.value.toString()}`)
 
-                // console.log("Applied pipeline: ")
-                // console.log(productsPipeline.pipeline())
+                console.log("Applied pipeline: ")
+                console.log(productsPipeline.pipeline())
 
                 const fetchedProducts = await productsPipeline.exec()
 
+                //console.log(fetchedProducts)
+
                 // Populate stars field and filter by minStars
-                const productsWithStars = fetchedProducts.flatMap( async (product) =>{
+                const productsWithStars = fetchedProducts.map( async (product) =>{
                     const productModel = new Product( {... product})
                     const stars = await productModel.stars()
-                    if( args.filter.minStars && stars > args.filter.minStars ) {
+                    if( filter.minStars && stars > filter.minStars ) {
                         productModel.stars = stars
-                        console.log("Si min stars")
                         return productModel
                     }
-                    if( !args.filter.minStars )
-                    {   console.log("No min stars")
-                        return productModel
-                    }
+                    if( !filter.minStars )
+                       return productModel
                 })
 
                 return Promise.all(productsWithStars).then((values) => {
                     return values.filter( it => it != null)})
-
-
             } catch( error ) {
                 throw error
             }
