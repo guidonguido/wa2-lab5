@@ -1,7 +1,10 @@
 //import {makeExecutableSchema} from 'graphql-tools'
 import pkg from 'graphql-tools';
 const {makeExecutableSchema} = pkg;
+import mongoose from 'mongoose'
 import Product from '../model/Product.js'
+import Comment from '../model/Comment.js'
+
 
 
 
@@ -82,50 +85,43 @@ const typeDefs = `
         ) : Comment
     }
 `
+mongoose.set('useFindAndModify', false);
 
 const resolvers = {
     Query: {
-        product: (parent, args, context, info) => {
-            return {_id: args.id,
-                name: "hello",
-                createdAt: new Date(),
-                description: "Test Product",
-                price: 1000,
-                stars: 3,
-                category: "STYLE"}
+        product: async (parent, args, context, info) => {
+            const res = await Product.findById(args.id)
+            return {
+                _id: res.id,
+                name: res.name,
+                createdAt: res.createdAt,
+                description: res.description,
+                comments: res.comments,
+                price: res.price,
+                stars: res.stars,
+                category: res.category
+            }
         },
 
-        products: (parent, args, context, info) => {
-            if( args.sort.value === "price" &&  args.sort.order === "desc")
-                return [{
-                    _id: 1,
-                    name: "SORTED FILTER",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"
-                }]
-
+        products: async (parent, args, context, info) => {
+            const order = args.sort.order === "desc" ? "-"+args.sort.value : args.sort.value
+            const minFilterStars = args.filter.minStars ? args.filter.minStars : 0
+            const minFilterPrice = args.filter.minPrice ? args.filter.minPrice : 0
+            const maxFilterPrice = args.filter.maxPrice ? args.filter.maxPrice : Number.MAX_SAFE_INTEGER
+            let res
+            if (args.filter.categories)
+                res = await Product.find({category: { $in: args.filter.categories },stars: { $gte: minFilterStars}, price: { $gte: minFilterPrice,  $lte: maxFilterPrice}}).sort(order);
             else
-                return [{
-                    _id: 1,
-                    name: "NO SORT NO FILTER",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"
-                }]
+                res = await Product.find({stars: { $gte: minFilterStars}, price: { $gte: minFilterPrice,  $lte: maxFilterPrice}}).sort(order);
+            return res
         }
     },
 
-    Product: {
+    /*Product: {
         comments: (product, args, context, info) => {
-            return [{id: 1, product, title: "Good", body:"GG", stars: 3, date: new Date()},
-                {id: 2, product, title: "Bad", body:"GG", stars: 4, date: new Date()}]
+            return product.comments
         }
-    },
+    },*/
 
     Mutation: {
         productCreate: async (parent, args, context, info) => {
@@ -140,6 +136,29 @@ const resolvers = {
             try {
                 await newProduct.save();
                 return newProduct
+            } catch (e) {
+                console.log("Error in productCreate")
+                throw e
+            }
+
+        },
+
+        commentCreate : async (parent, args, context, info) => {
+            const newComment = new Comment({
+                title: args.commentCreateInput.title,
+                body: args.commentCreateInput.body,
+                stars: args.commentCreateInput.stars,
+                date: new Date()
+            });
+            try {
+                //await newComment.save();
+                const prod = await Product.findById(args.productId)
+                const newStars = ((prod.stars * prod.comments.length) + args.commentCreateInput.stars)/(prod.comments.length+1)
+                await Product.findOneAndUpdate(
+                    { _id: args.productId },
+                    { $push: { comments: newComment  },
+                             $set:  { stars: newStars}})
+                return newComment
             } catch (e) {
                 console.log("Error in productCreate")
                 throw e
