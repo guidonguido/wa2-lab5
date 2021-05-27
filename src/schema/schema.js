@@ -1,4 +1,6 @@
 import {makeExecutableSchema} from "graphql-tools";
+import Product from "../model/product.js";
+import Comment from "../model/comment.js"
 
 const typeDefs = `
     scalar DateTime,
@@ -80,63 +82,134 @@ const typeDefs = `
 
 const resolvers = {
     Query: {
-        product: (parent, args, context, info) => {
-            return {_id: args.id,
-                name: "hello",
-                createdAt: new Date(),
-                description: "Test Product",
-                price: 1000,
-                stars: 3,
-                category: "STYLE"}
+        product: async (parent, args, context, info) => {
+            try {
+                return await Product.findById(args.id).exec()
+            } catch (e) {
+                throw e
+            }
         },
 
-        products: (parent, args, context, info) => {
-            if( args.sort.value == "price" &&  args.sort.order == "desc")
-                return [{
-                    _id: args.id,
-                    name: "SORTED FILTER",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"
-                }]
+        products: async (parent, args, context, info) => {
+            try {
+                const filter = {
+                    categories: (args.filter && args.filter.categories) || null,
+                    minStars: (args.filter && args.filter.minStars) || null,
+                    minPrice: (args.filter && args.filter.minPrice) || null,
+                    maxPrice: (args.filter && args.filter.maxPrice) || null
+                }
 
-            else
-                return [{
-                    _id: args.id,
-                    name: "NO SORT NO FILTER",
-                    createdAt: new Date(),
-                    description: "Test Product",
-                    price: 1000,
-                    stars: 3,
-                    category: "STYLE"
-                }]
+                const sort = {
+                    value: (args.sort && args.sort.value) || null,
+                    order: (args.sort && args.sort.order) || null
+                }
+
+                // Initialize pipeline with firs filters
+                let productsPipeline = Product.aggregate([
+                    { $match: {
+                        $and: [
+                            {price: {$gt: filter.minPrice || 0,
+                                     $lt: filter.maxPrice || Number.MAX_SAFE_INTEGER}},
+                        ]
+                        }}
+                ])
+
+                // PARAMETRIC FILTERS
+
+                // - If filtering categories are specified
+                filter.categories && productsPipeline.match({ category: {$in: filter.categories}})
+
+                // - If sorting value is specified
+                sort.value && productsPipeline.sort(
+                    `${sort.order.toString()==='asc'? "" : "-"}${sort.value.toString()}`
+                )
+
+                console.log("Applied pipeline: ")
+                console.log(productsPipeline.pipeline())
+
+                const fetchedProducts = await productsPipeline.exec()
+
+                //console.log(fetchedProducts)
+
+                // Populate stars field and filter by minStars
+                const productsWithStars = fetchedProducts.map( async (product) =>{
+                    const productModel = new Product( {... product})
+                    const stars = await productModel.stars()
+                    if( filter.minStars && stars > filter.minStars ) {
+                        productModel.stars = stars
+                        return productModel
+                    }
+                    if( !filter.minStars )
+                        return productModel
+                })
+
+                return Promise.all(productsWithStars).then((values) => {
+                    return values.filter( it => it != null)
+                })
+
+            } catch (e) {
+                throw e
+            }
         }
     },
 
     Product: {
-        comments: (product, args, context, info) => {
-            return [{id: 1, product, title: "Good", body:"GG", stars: 3, date: new Date()},
-                {id: 2, product, title: "Bad", body:"GG", stars: 4, date: new Date()}]
+        comments: async (product, args, context, info) => {
+            return await Comment.find({
+                '_id': {
+                    $in: product.comments
+                }
+            }).exec()
         }
     },
 
     Mutation: {
-        productCreate: (parent, args, context, info) => {
-            console.log(`Product mutation requested ${
-                args.productCreateInput.name,
-                    args.productCreateInput.description,
-                    args.productCreateInput.price,
-                    args.productCreateInput.category}`)
+        productCreate: async (parent, args, context, info) => {
+            try {
+                const { name, description, price, category } = args.productCreateInput
+                const product = new Product({
+                    name: name,
+                    createdAt: new Date(),
+                    description: description,
+                    price: price,
+                    comments: [], // Comments _id list
+                    category: category
+                })
 
-            return {_id: 1,
-                name: args.productCreateInput.name,
-                description: args.productCreateInput.description,
-                price: args.productCreateInput.price,
-                category: args.productCreateInput.category,
-                createdAt: new Date(),
-                stars: 3}
+                const newProduct = await Product.create(product)
+                console.log("Created product: " + newProduct)
+                return newProduct
+            } catch (error) {
+                console.log("Error on mutation")
+                throw error
+            }
+        },
+
+        commentCreate: async (parent, args, context, info) => {
+            try {
+                const { title, body, stars} = args.commentCreateInput
+                const productID = args.productId
+                const comment = new Comment({
+                    title: title,
+                    body: body,
+                    stars: stars,
+                    date: new Date()
+                })
+
+                const newComment = await Comment.create(comment)
+                console.log("Created comment: " + newComment)
+
+                // Update the referenced comments on Product
+                await Product.findByIdAndUpdate(
+                    productID,
+                    { $push: {comments: newComment._id}}, //FIXME non lo aggiunge
+                    { new: true, useFindAndModify: false })
+
+                return newComment
+            } catch (error) {
+                console.log("Error on mutation")
+                throw error
+            }
         }
     }
 }
@@ -144,4 +217,4 @@ const resolvers = {
 const schema = makeExecutableSchema({
     typeDefs, resolvers})
 
-export {schema}
+export default schema

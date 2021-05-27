@@ -50,6 +50,9 @@ const productSchema = new mongoose.Schema({
 productSchema.methods.stars = async function() {
     //const commentIds = comments.map( (it) => {return mongoose.Types.ObjectId(it)})
     console.log("Comments: " + this.comments)
+    if (this.comments.length === 0)
+        return 0
+
     const fetchedAvgStars =  await Comment.aggregate([
         {$match: {_id: {$in: this.comments}}},
         {$group: {_id: null, avgStars: {$avg: "$stars"}}},

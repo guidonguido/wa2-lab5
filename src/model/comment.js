@@ -9,7 +9,7 @@ const commentSchema = new mongoose.Schema({
     stars: {
         type: Number,
         required: true,
-        min: 1, //TODO do we assume it?
+        min: 0, //TODO do we assume it?
         max: 5
     },
     date: {
