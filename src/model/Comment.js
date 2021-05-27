@@ -8,7 +8,9 @@ const commentSchema = new mongoose.Schema({
     body: String,
     stars: {
         type: Number,
-        required: true
+        required: true,
+        min:0,
+        max:5
     },
     date: {
         type: Date,
@@ -16,7 +18,10 @@ const commentSchema = new mongoose.Schema({
     }
 });
 
-
+const Comment = mongoose.model('Comment', commentSchema)
 
 //The compiled schema is made available to other modules
-export default mongoose.model('Comment', commentSchema);
+export {
+    Comment,
+    commentSchema
+}
