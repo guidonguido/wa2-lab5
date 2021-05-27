@@ -18,17 +18,18 @@
 
 ## How to Test the Application with GraphiQL
 
-Launch the npm application and connect to `[localhost:3000/graphql](http://localhost:3000/graphql)` . Through GraphiQ, a graphical interactive in-browser GraphQL IDE, you can easily test the web server querying your DB.
+Launch the npm application and connect to `[localhost:3000/graphql](http://localhost:3000/graphql)`.
+Through GraphiQL, a graphical interactive in-browser GraphQL IDE, you can easily test the web server querying your DB.
 
 ### - Create a Product
 
-```arduino
+```
 mutation {
   productCreate(
     productCreateInput: {
-          name : "TestProduct1",
-          description : "My first product",
-          price :11.1,
+          name: "TestProduct1",
+          description: "My first product",
+          price: 11.1,
           category: FOOD
       }
   ){
@@ -49,11 +50,12 @@ mutation {
 
 ### - Create a Comment related to a Product
 
-First, you have to retrieve the productId of an existing Product; to do so either inspect the DB and copy a productId or query it with Graphql referencing to the "**Get (sorted) Products specifying a filter**" section.
+First, you have to retrieve the productId of an existing Product; to do so either inspect the DB and copy a productId 
+or query it with Graphql referencing to the "**Get (sorted) Products specifying a filter**" section.
 
-Create multiple comments to see how the stars field of a Product changes
+Create multiple comments to see how the stars field of a Product changes.
 
-```arduino
+```
 mutation {
   commentCreate(
     commentCreateInput: {
@@ -74,9 +76,10 @@ mutation {
 
 ### - Get Product with given productId
 
-First, you have to retrieve the productId of an existing Product; to do so either inspect the DB and copy a productId or query it with Graphql referencing to the "**Get (sorted) Products specifying a filter**" section.
+First, you have to retrieve the productId of an existing Product; to do so either inspect the DB and copy a productId 
+or query it with Graphql referencing to the "**Get (sorted) Products specifying a filter**" section.
 
-```arduino
+```
 { 
    product(id: "60ac02ff5e512a41db0d5c81") {
   	name,
@@ -102,7 +105,7 @@ Sorting **value** can be either "*createdAt*" or "*price*"
 
 Sorting **order** can be "*asc*" or "*desc*"
 
-```arduino
+```
 {
   products(
     filter: {

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {commentSchema} from './Comment.js'
+import {commentSchema} from './comment.js'
 
 const productCategory = [
     "STYLE",
@@ -17,10 +17,10 @@ const productCategory = [
  * Each time someone posts a Comment, we need to update the corresponding Product document.
  * The data can change all the time, so this is a great candidate for referencing.
  *
- * Also, in mongo, one document should contain maximum of 16MB,not more than that.
+ * Also, in Mongo, one document should contain maximum of 16MB, not more than that.
  *
  * We are programming to have a small number of comments (less than 1k per product),
- * so we decided to Embed it.
+ * so we decided to embed it.
  */
 const productSchema = new mongoose.Schema({
     name: {

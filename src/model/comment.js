@@ -21,7 +21,4 @@ const commentSchema = new mongoose.Schema({
 const Comment = mongoose.model('Comment', commentSchema)
 
 //The compiled schema is made available to other modules
-export {
-    Comment,
-    commentSchema
-}
+export {Comment, commentSchema}

@@ -1,5 +1,5 @@
-import Product from "../model/Product.js";
-import {Comment} from "../model/Comment.js";
+import Product from "../model/product.js";
+import {Comment} from "../model/comment.js";
 
 const resolvers = {
     Query: {
@@ -10,35 +10,34 @@ const resolvers = {
                 throw error
             }},
 
-        products: async (parent, args, context, info) => {
-
+        products: async (parent, args) => {
             try{
                 const filter = {
                     categories: (args.filter && args.filter.categories) || null,
-                    minStars: (args.filter && args.filter.minStars)|| 0,
-                    minPrice: (args.filter && args.filter.minPrice)|| 0,
-                    maxPrice: (args.filter && args.filter.maxPrice)|| Number.MAX_SAFE_INTEGER
+                    minStars: (args.filter && args.filter.minStars) || 0,
+                    minPrice: (args.filter && args.filter.minPrice) || 0,
+                    maxPrice: (args.filter && args.filter.maxPrice) || Number.MAX_SAFE_INTEGER
                 }
 
                 const sort = {
-                    value: (args.sort && args.sort.value)|| null,
-                    order: (args.sort && args.sort.order)|| null
+                    value: (args.sort && args.sort.value) || null,
+                    order: (args.sort && args.sort.order) || null
                 }
 
 
-                // Initialize pipeline with firs filters
+                // Initialize pipeline with first filters
                 let productsPipeline = Product.aggregate([
                     { $match: {
                             $and: [
-                                {stars: {$gte: filter.minStars}},
-                                {price: {$gte: filter.minPrice,
-                                        $lte: filter.maxPrice}},
+                                { stars: { $gte: filter.minStars}},
+                                { price: { $gte: filter.minPrice,
+                                           $lte: filter.maxPrice}},
                             ]}}
                 ])
 
                 // PARAMETRIC FILTERS
                 // - If filtering categories are specified
-                filter.categories && productsPipeline.match({ category: {$in: filter.categories}})
+                filter.categories && productsPipeline.match({ category: { $in: filter.categories}})
 
                 // - If sorting value is specified
                 sort.value && productsPipeline.sort(
@@ -51,8 +50,6 @@ const resolvers = {
             } catch( error ) {
                 throw error
             }
-
-
         }},
 
     Product: {
@@ -75,13 +72,13 @@ const resolvers = {
                 })
 
                 return await product.save()
-            }catch (error) {
+            } catch (error) {
                 console.log("Error on mutation")
                 throw error
             }
         },
 
-        commentCreate: async (parent, args, context, info) => {
+        commentCreate: async (parent, args) => {
             try {
                 const { title, body, stars} = args.commentCreateInput
                 const productID = args.productId
@@ -96,7 +93,9 @@ const resolvers = {
                 })
 
                 const validationError = comment.validateSync()
-                if (validationError != null)    throw new Error(validationError.name)
+
+                if (validationError != null)
+                    throw new Error(validationError.name)
 
                 const updatedStars = ((product.stars * product.comments.length) + stars)/(product.comments.length+1)
 
@@ -108,12 +107,11 @@ const resolvers = {
                     { useFindAndModify: false })
 
                 return comment
-            }catch (error) {
+            } catch (error) {
                 console.log("Error on mutation")
                 throw error
             }
         }
-
     }
 }
 
