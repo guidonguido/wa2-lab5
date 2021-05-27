@@ -16,6 +16,10 @@
 * Alessio Chiolo - 277934
 * Alessandro Lucani - 281755
 
+## How to change DB connection settings
+
+Connection settings are stored into the `.env` file, simply change the desired settings.
+
 ## How to Test the Application with GraphiQL
 
 Launch the npm application and connect to `[localhost:3000/graphql](http://localhost:3000/graphql)`.
